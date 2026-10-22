@@ -8,4 +8,4 @@ Each file name and `key` field are the first 32 hexadecimal characters of a SHA-
 
 New live recordings can contain prompts, evidence and tool results from your provider session. Review them separately before adding them to public history. The committed fixtures support a reproducible offline demonstration.
 
-The set combines the original scripted CLI-story recordings with recordings generated from the exact harness eval driver during showcase preparation. Both sources are deterministic; the strict gate uses the eval driver. To refresh that coverage offline, run `RECORD_SOURCE=scripted EVAL_LLM_MODE=record pnpm exec vitest run --project evals`, then run the strict replay check.
+The set combines the original scripted CLI-story recordings with recordings generated from the exact harness eval driver during publication preparation. Both sources are deterministic; the strict gate uses the eval driver. To refresh that coverage offline, run `RECORD_SOURCE=scripted EVAL_LLM_MODE=record pnpm exec vitest run --project evals`, then run the strict replay check.

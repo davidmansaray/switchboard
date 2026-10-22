@@ -16,7 +16,7 @@ Checked locally on 22 October 2026 using Node 22.23.1, pnpm 10.30.3, PostgreSQL 
 | Browser story and mobile approval view | 2 tests passed on each signal backend; 4 total |
 | Setup helper repeat run | Preserved existing configuration, with random secrets and file mode 0600 |
 
-The first full test run passed 100 assertions but reported two unhandled database errors at teardown. The app-owned loop reported idle before its final desk-state writes completed. This showcase corrects that lifecycle boundary and awaits the second delivery in its regression test. See [provenance](provenance.md).
+The first full test run passed 100 assertions but reported two unhandled database errors at teardown. The app-owned loop reported idle before its final desk-state writes completed. This application corrects that lifecycle boundary and awaits the second delivery in its regression test. See [provenance](provenance.md).
 
 The first strict replay check found 23 missing responses because the original fixtures came from the CLI story driver. Recordings from the exact eval driver were generated with `RECORD_SOURCE=scripted`, reviewed and added. Strict replay then passed against the final combined fixture set.
 

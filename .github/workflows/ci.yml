@@ -1,4 +1,4 @@
-name: Showcase checks
+name: Application checks
 
 on:
   push:

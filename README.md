@@ -1,6 +1,6 @@
 # Switchboard
 
-A Next.js / TypeScript and Mastra showcase of durable agents, evidence-backed approvals and recovery under failure.
+A Next.js / TypeScript and Mastra application for durable agents, evidence-backed approvals and recovery under failure.
 
 **Live:** https://switchboard.davidmansaray.com
 
@@ -82,7 +82,7 @@ pnpm build                # next build + mastra build
 pnpm e2e                  # Playwright: the hero story through the UI, on harness then app
 ```
 
-See [verification results](docs/verification.md) for checks performed on this showcase snapshot. CI runs lint, types, deterministic tests/evaluations and builds without live provider credentials.
+See [verification results](docs/verification.md) for checks performed on this application snapshot. CI runs lint, types, deterministic tests/evaluations and builds without live provider credentials.
 
 `pnpm e2e` starts the production builds on their own ports (web 3243, agent 4243) and database (`switchboard_showcase_e2e`) for each backend, under the same supervisor, and drives the installed Google Chrome (`channel: 'chrome'`; no Playwright browser download).
 
@@ -161,4 +161,4 @@ See [deployment boundaries](docs/deployment.md), [snapshot provenance](docs/prov
 
 ## Licence
 
-The source had no declared licence. No new licence has been added to this showcase.
+The source had no declared licence. No new licence has been added to this repository.

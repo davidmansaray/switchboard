@@ -1,4 +1,4 @@
-# Showcase provenance
+# Repository provenance
 
 Prepared from Switchboard commit `fe4579a08b884b1f4b39d055c7d3c9cf3768bd55` on 22 October 2026, with fresh publication history separate from private development.
 
@@ -8,7 +8,7 @@ The source had no declared licence. That state is preserved; no new licence or r
 
 See [verification](verification.md) and [scenario provenance](../scenarios/README.md).
 
-## Showcase correction
+## Application correction
 
 The app-owned signal loop now reports idle only after its final desk-state writes finish, and restarts draining if work arrives during that finalisation. Its advisory-lock regression test waits for the second delivery to finish before database teardown. This corrects a shutdown race found while checking this snapshot; the private source repository is unchanged.
 
