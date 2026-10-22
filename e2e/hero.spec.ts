@@ -38,7 +38,10 @@ test('the hero story, beat by beat, through the UI', async ({ page }) => {
 
   // Back to the seeded morning (two clicks: Reset, Confirm reset).
   await page.getByTestId('sim-reset').click();
+  const resetResponse = page.waitForResponse((response) => response.url().endsWith('/api/sim') && response.request().method() === 'POST' && response.request().postDataJSON()?.action === 'reset');
   await page.getByTestId('sim-reset').click();
+  const reset = await resetResponse;
+  expect(reset.ok(), `scenario reset failed: ${await reset.text()}`).toBe(true);
   await expect(page.getByTestId('sim-next')).toContainText('Next beat 1', { timeout: 60_000 });
   const hero = page.getByTestId('desk-NH-5520');
   await expect(hero).toHaveAttribute('data-status', 'idle');

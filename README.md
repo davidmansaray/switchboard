@@ -86,6 +86,8 @@ See [verification results](docs/verification.md) for checks performed on this ap
 
 `pnpm e2e` starts the production builds on their own ports (web 3243, agent 4243) and database (`switchboard_showcase_e2e`) for each backend, under the same supervisor, and drives the installed Google Chrome (`channel: 'chrome'`; no Playwright browser download).
 
+The E2E runner checks that its ports are free before resetting the disposable database, verifies the requested backend at startup, and waits for the previous stack to stop before starting the next. It saves per-backend stack logs and browser traces under `test-results/`; GitHub retains failure artifacts for seven days.
+
 ## Further reading
 
 - [Architecture, scenario and screen guide](docs/architecture.md)

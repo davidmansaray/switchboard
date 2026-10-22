@@ -6,6 +6,8 @@
  * Run `pnpm build` first. Pass a backend to run one: `pnpm e2e app`.
  */
 import { execFileSync, spawn } from 'node:child_process';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { createConnection } from 'node:net';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -20,6 +22,42 @@ const exists = execFileSync('psql', ['-d', 'postgres', '-Atc', "select 1 from pg
 if (!exists && DB.endsWith('/switchboard_showcase_e2e')) execFileSync('createdb', ['switchboard_showcase_e2e']);
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function portOpen(port) {
+  return new Promise((resolve) => {
+    const socket = createConnection({ host: 'localhost', port: Number(port) });
+    const done = (open) => { socket.destroy(); resolve(open); };
+    socket.once('connect', () => done(true));
+    socket.once('error', () => done(false));
+    socket.setTimeout(500, () => done(true));
+  });
+}
+
+async function requireFreePorts(waitMs = 0) {
+  const deadline = Date.now() + waitMs;
+  do {
+    if (!(await portOpen(WEB)) && !(await portOpen(AGENT))) return;
+    if (Date.now() >= deadline) break;
+    await sleep(100);
+  } while (Date.now() < deadline);
+  throw new Error(`E2E ports ${WEB}/${AGENT} are still in use; refusing to reset or reuse another stack`);
+}
+
+async function stopStack(stack) {
+  const signal = (name) => {
+    try { process.kill(-stack.pid, name); } catch (error) {
+      if (error.code !== 'ESRCH') throw error;
+    }
+  };
+  signal('SIGTERM');
+  const deadline = Date.now() + 5000;
+  while (Date.now() < deadline) {
+    try { process.kill(-stack.pid, 0); } catch { break; }
+    await sleep(100);
+  }
+  signal('SIGKILL');
+  await requireFreePorts(10_000);
+}
+
 async function up(url) {
   for (let i = 0; i < 120; i++) {
     if (await fetch(url, { signal: AbortSignal.timeout(1500) }).then((r) => r.ok).catch(() => false)) return;
@@ -47,6 +85,7 @@ for (const backend of backends) {
     ALLOW_SCENARIO_RESET: 'true',
     SCRIPTED_LATENCY_MS: process.env.SCRIPTED_LATENCY_MS ?? '250',
   };
+  await requireFreePorts();
   execFileSync('pnpm', ['--filter', '@switchboard/db', 'reset'], { cwd: root, env, stdio: 'inherit' });
   // Run the agent from a snapshot of the build, so a `mastra dev` rebundling .mastra/output can't change it mid-run.
   const snap = resolve(root, 'apps/agent/.mastra/e2e-output');
@@ -59,23 +98,20 @@ for (const backend of backends) {
   stack.stderr.on('data', (d) => (log += d));
   try {
     await up(`http://localhost:${AGENT}/status`);
+    const status = await fetch(`http://localhost:${AGENT}/status`).then((r) => r.json());
+    if (status.backend !== backend) throw new Error(`expected ${backend} agent, got ${status.backend}`);
     await up(`http://localhost:${WEB}/api/health`);
-    execFileSync('pnpm', ['exec', 'playwright', 'test'], { cwd: root, env: { ...env, E2E_BASE_URL: `http://localhost:${WEB}` }, stdio: 'inherit' });
+    execFileSync('pnpm', ['exec', 'playwright', 'test', '--output', `test-results/${backend}`], { cwd: root, env: { ...env, E2E_BASE_URL: `http://localhost:${WEB}` }, stdio: 'inherit' });
   } catch (e) {
     failed++;
     console.error(`e2e failed on ${backend}: ${e.message}`);
     console.error(log.split('\n').slice(-60).join('\n'));
   } finally {
     try {
-      process.kill(-stack.pid, 'SIGTERM');
-    } catch {
-      /* already gone */
-    }
-    await sleep(2500);
-    try {
-      process.kill(-stack.pid, 'SIGKILL');
-    } catch {
-      /* already gone */
+      await stopStack(stack);
+    } finally {
+      mkdirSync(resolve(root, 'test-results'), { recursive: true });
+      writeFileSync(resolve(root, `test-results/stack-${backend}.log`), log);
     }
   }
 }
