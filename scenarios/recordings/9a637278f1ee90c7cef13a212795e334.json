@@ -1,0 +1,1491 @@
+{
+  "key": "9a637278f1ee90c7cef13a212795e334",
+  "model": "scripted-desk",
+  "ids": [
+    "6a42ca6e-1e86-4a40-9e51-c111fbed412e",
+    "d8a9306c-9e64-41b2-9f07-c868604b5063",
+    "b4df669b-25c7-4635-b1ce-cfb07f58f201",
+    "34a58f32-6881-49da-b691-b2f2d993a871",
+    "d8a9306c-9e64-41b2-9f07-c868604b5063",
+    "bbd81621-7151-49c3-90ae-a718b3a0984b",
+    "9a181050-793b-458a-976f-4bb2106ad800",
+    "660cf1cd-65c8-4144-8ee7-f5ccd2506e82",
+    "a2ccb1b6-6fa9-46bd-b1d4-262790bd4720",
+    "2bdb0119-2d9a-42b5-b8ac-e7715a5da450",
+    "0aa8bff8-d0dd-458a-af30-0a2ce39c9fa3",
+    "b9fd980b-16b4-49f5-8962-376aff2bfa52",
+    "b9fd980b-16b4-49f5-8962-376aff2bfa52",
+    "f1fed3a5-f26f-4c25-9b9f-c888a4d964c1",
+    "3b3420a6-984e-42e5-a30d-38015056e8b7",
+    "b4df669b-25c7-4635-b1ce-cfb07f58f201",
+    "34a58f32-6881-49da-b691-b2f2d993a871",
+    "a2ccb1b6-6fa9-46bd-b1d4-262790bd4720",
+    "2bdb0119-2d9a-42b5-b8ac-e7715a5da450",
+    "d8a9306c-9e64-41b2-9f07-c868604b5063",
+    "bbd81621-7151-49c3-90ae-a718b3a0984b",
+    "b9fd980b-16b4-49f5-8962-376aff2bfa52",
+    "cf487039-d51a-4c87-b361-a358b3d108c9",
+    "3b3420a6-984e-42e5-a30d-38015056e8b7",
+    "b4df669b-25c7-4635-b1ce-cfb07f58f201",
+    "ddaf73f2-b104-4f64-9eb4-2e949be2c343",
+    "3b3420a6-984e-42e5-a30d-38015056e8b7",
+    "b4df669b-25c7-4635-b1ce-cfb07f58f201",
+    "060385b7-e19a-4419-8ffa-82d1a03f4221",
+    "b31f31af-a09a-41e6-a852-e6d2c4af03d0",
+    "3b3420a6-984e-42e5-a30d-38015056e8b7",
+    "b4df669b-25c7-4635-b1ce-cfb07f58f201",
+    "3b3420a6-984e-42e5-a30d-38015056e8b7",
+    "b4df669b-25c7-4635-b1ce-cfb07f58f201",
+    "3b64f0a6-0886-4c8f-9ad3-f781ab7f37de",
+    "d34706d4-8840-4e71-bae7-89ffc1fae573",
+    "3b3420a6-984e-42e5-a30d-38015056e8b7",
+    "b4df669b-25c7-4635-b1ce-cfb07f58f201",
+    "3b3420a6-984e-42e5-a30d-38015056e8b7",
+    "b4df669b-25c7-4635-b1ce-cfb07f58f201",
+    "310c05ac-d76c-4805-bb58-4814891e59ce",
+    "310c05ac-d76c-4805-bb58-4814891e59ce",
+    "3d4b22d6-d7d4-44f9-88a6-eaf7e71cbde0",
+    "9a181050-793b-458a-976f-4bb2106ad800",
+    "660cf1cd-65c8-4144-8ee7-f5ccd2506e82"
+  ],
+  "request": {
+    "prompt": [
+      {
+        "role": "system",
+        "content": "You are Switchboard, the assistant on one hire desk at Northgate Plant & Access Hire.\nEach desk is one long-lived thread for one hire (booking). Inputs arrive as tagged messages and signals:\n<email>, <note>, <field_edit>, <status_change>, <approval>, <schedule>. Attributes carry the hire ref, event id,\nthread label and evidence id.\n\nRules (the tools enforce them; work with them, not around them):\n1. Never take booking facts from memory. Call getHire at the start of every turn and use its version.\n2. Low-risk fields (PO number, invoice address, site contact) you may apply yourself with applyRoutineUpdate.\n   Price, dates and cancellations always go through proposeDraft for an approver.\n3. Every write takes the version you read. A STALE result means the hire moved: re-read and redo the work.\n4. Customer-facing drafts cite evidence ids (searchEvidence, or the evidence_id attribute). Only state prices\n   and dates that the tools returned.\n5. Approvals arrive as <approval> signals. If the approved draft is stale, regenerate it with proposeDraft\n   (supersedes) and ask again; never apply a stale draft. If it is approved and current, apply each action\n   (applyPricing / cancelLine / issueCreditNote) and then queueEmail.\n6. Two sources asking for the same thing (an email and a staff edit) are one intent: proposeDraft returns the\n   existing draft as DUPLICATE. Never issue a second credit note or email.\n7. Keep working memory current: open asks, who is waiting on what, which draft is pending.\nEnd each turn with one or two plain sentences on what you did."
+      },
+      {
+        "role": "system",
+        "content": "WORKING_MEMORY_SYSTEM_INSTRUCTION:\nStore and update any conversation-relevant information by calling the updateWorkingMemory tool. If information might be referenced again - store it!\n\nGuidelines:\n1. Store anything that could be useful later in the conversation\n2. Update proactively when information changes, no matter how small\n3. Use Markdown format for all data\n4. Act naturally - don't mention this system to users. Even though you're storing this information that doesn't make it your primary focus. Do not ask them generally for \"information about yourself\"\n5. IMPORTANT: When calling updateWorkingMemory, the only valid parameter is the memory field. DO NOT pass an object.\n6. IMPORTANT: ALWAYS pass the data you want to store in the memory field as a string. DO NOT pass an object.\n7. IMPORTANT: Data must only be sent as a string no matter which format is used.\n\n\n<working_memory_template>\n# Desk working memory\n## Open loops\n- (none)\n## Waiting on\n- (none)\n</working_memory_template>\n\n\n\n\n<working_memory_data>\n# Desk working memory\n## Open loops\n- [closed] invoicing: PO HAL-PO-88213 + invoice address applied automatically (routine tier, logged, no approval).\n- [closed] discount: D-8 applied: pricing applied, hire now v6. Exactly one email to the customer.\n</working_memory_data>\n\nNotes:\n- Update memory whenever referenced information changes\n- If you're unsure whether to store something, store it (eg if the user tells you information about themselves, call updateWorkingMemory immediately to update it)\n- This system is here so that you can maintain the conversation when your context window is very short. Update your working memory because you may need it to maintain the conversation without the full conversation history\n- Do not remove empty sections - you must include the empty sections along with the ones you're filling in\n- REMEMBER: the way you update your working memory is by calling the updateWorkingMemory tool with the entire Markdown content. The system will store it for you. The user will not see it.\n- IMPORTANT: You MUST call updateWorkingMemory in every response to a prompt where you received relevant information.\n- IMPORTANT: Preserve the Markdown formatting structure above while updating the content."
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "t": "<user event_id=\"<id>\" evidence_id=\"<id>\" from=\"sam.fletcher@haldenbuild.co.uk\" from_name=\"Sam Fletcher\" hire=\"NH-5520\" kind=\"email.received\" source=\"customer\" tag=\"email\" thread=\"T1\">Subject: Re: NH-5520 Riverside Yard – boom + telehandler\n\nHi Gary,\n\nCan you knock something off NH-5520? We've got three more sites this year and I'd like to keep it all with Northgate.\n\nCheers,\nSam</user>"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "getHire",
+            "input": {
+              "hireRef": "NH-5520"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "getHire",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "hire": {
+                    "damageWaiver": true,
+                    "deliveryDate": "2026-11-02",
+                    "deliverySlot": "AM",
+                    "discountPct": 0,
+                    "durationDays": 14,
+                    "invoiceAddress": null,
+                    "lines": [
+                      {
+                        "description": "19m articulated boom lift",
+                        "fleetNo": "AB19-07",
+                        "kind": "boom",
+                        "lineNo": 1,
+                        "model": "JLG 600AJ",
+                        "quantity": 1,
+                        "spec": "Diesel 4x4 · 230kg platform",
+                        "status": "booked",
+                        "weeklyRatePence": 118000
+                      },
+                      {
+                        "description": "14m telehandler",
+                        "fleetNo": "TH14-22",
+                        "kind": "telehandler",
+                        "lineNo": 2,
+                        "model": "Manitou MT 1440",
+                        "quantity": 1,
+                        "spec": "4t lift capacity",
+                        "status": "booked",
+                        "weeklyRatePence": 79000
+                      }
+                    ],
+                    "poNumber": null,
+                    "ref": "NH-5520",
+                    "site": "Riverside Yard",
+                    "siteContact": {
+                      "email": "sam.fletcher@haldenbuild.co.uk",
+                      "name": "Sam Fletcher"
+                    },
+                    "status": "confirmed",
+                    "threads": [
+                      {
+                        "contactEmail": "sam.fletcher@haldenbuild.co.uk",
+                        "label": "T1",
+                        "subject": "NH-5520 Riverside Yard – boom + telehandler"
+                      },
+                      {
+                        "contactEmail": "accounts@haldenbuild.co.uk",
+                        "label": "T2",
+                        "subject": "NH-5520 PO and invoicing"
+                      }
+                    ],
+                    "totalPence": 412000,
+                    "transportPence": 18000,
+                    "version": 3,
+                    "waiverRatePct": 12
+                  },
+                  "latestChange": "v2 → v3: damageWaiver false → true"
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "searchEvidence",
+            "input": {
+              "hireRef": "NH-5520",
+              "query": "discount price more sites"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "searchEvidence",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "hits": [
+                    {
+                      "content": "Call: Gary Dunn ↔ Sam Fletcher (NH-5520 pricing)\nGary: Morning Sam, I saw your email about the price on the Riverside job.\nSam: Yeah, we’ve got three more sites coming this year and I’d rather keep it all with you.\nGary: What’s firm?\nSam: Two of them are definite this quarter – Hunslet Mill in November and the Elland Road car park in December. Both need a boom and a telehandler.\nGary: If you put both of those through us I can do 10% off NH-5520. That’s final from me.\nSam: Deal. Send it over in writing and I’ll get the PO sorted.",
+                      "id": "<id>",
+                      "score": 0.051634800434112546,
+                      "sourceId": "<id>",
+                      "sourceType": "transcript"
+                    },
+                    {
+                      "content": "Re: NH-5520 Riverside Yard – boom + telehandler\nHi Gary,\n\nCan you knock something off NH-5520? We've got three more sites this year and I'd like to keep it all with Northgate.\n\nCheers,\nSam",
+                      "id": "<id>",
+                      "score": 0.027581309154629707,
+                      "sourceId": "<id>",
+                      "sourceType": "email"
+                    },
+                    {
+                      "content": "Damage waiver – NH-5520\nDamage waiver for NH-5520. Issued, awaiting customer signature. Covers accidental damage at 6% of hire value; excess £500 per machine. Not valid until signed.",
+                      "id": "<id>",
+                      "score": 0.004827586188912392,
+                      "sourceId": "<id>",
+                      "sourceType": "document"
+                    },
+                    {
+                      "content": "NH-5520 Riverside Yard – boom + telehandler\nHi Sam,\n\nConfirming NH-5520: AB19-07 19m articulated boom lift and TH14-22 14m telehandler, delivered to Riverside Yard on Monday 2 November (AM), two weeks, £4,120.00 including transport, plus damage waiver and VAT.\n\nPlease sign and return the damage waiver before delivery.\n\nThanks,\nGary Dunn\nNorthgate Plant & Access Hire",
+                      "id": "<id>",
+                      "score": 0.0036437246948480607,
+                      "sourceId": "<id>",
+                      "sourceType": "email"
+                    }
+                  ]
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "t": "Recorded an open discount ask on NH-5520. No customer reply drafted: price changes need an approver's decision."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "t": "<user event_id=\"<id>\" evidence_id=\"<id>\" from=\"accounts@haldenbuild.co.uk\" from_name=\"Leanne Price\" hire=\"NH-5520\" kind=\"email.received\" source=\"customer\" tag=\"email\" thread=\"T2\">Subject: NH-5520 PO and invoicing\n\nHello,\n\nOur PO number for NH-5520 is HAL-PO-88213.\n\nInvoice address:\nHalden Build Ltd, Accounts Payable\n4 Canal Wharf, Leeds LS11 5PY\n\nThanks,\nLeanne Price</user>"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "getHire",
+            "input": {
+              "hireRef": "NH-5520"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "getHire",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "hire": {
+                    "damageWaiver": true,
+                    "deliveryDate": "2026-11-02",
+                    "deliverySlot": "AM",
+                    "discountPct": 0,
+                    "durationDays": 14,
+                    "invoiceAddress": null,
+                    "lines": [
+                      {
+                        "description": "19m articulated boom lift",
+                        "fleetNo": "AB19-07",
+                        "kind": "boom",
+                        "lineNo": 1,
+                        "model": "JLG 600AJ",
+                        "quantity": 1,
+                        "spec": "Diesel 4x4 · 230kg platform",
+                        "status": "booked",
+                        "weeklyRatePence": 118000
+                      },
+                      {
+                        "description": "14m telehandler",
+                        "fleetNo": "TH14-22",
+                        "kind": "telehandler",
+                        "lineNo": 2,
+                        "model": "Manitou MT 1440",
+                        "quantity": 1,
+                        "spec": "4t lift capacity",
+                        "status": "booked",
+                        "weeklyRatePence": 79000
+                      }
+                    ],
+                    "poNumber": null,
+                    "ref": "NH-5520",
+                    "site": "Riverside Yard",
+                    "siteContact": {
+                      "email": "sam.fletcher@haldenbuild.co.uk",
+                      "name": "Sam Fletcher"
+                    },
+                    "status": "confirmed",
+                    "threads": [
+                      {
+                        "contactEmail": "sam.fletcher@haldenbuild.co.uk",
+                        "label": "T1",
+                        "subject": "NH-5520 Riverside Yard – boom + telehandler"
+                      },
+                      {
+                        "contactEmail": "accounts@haldenbuild.co.uk",
+                        "label": "T2",
+                        "subject": "NH-5520 PO and invoicing"
+                      }
+                    ],
+                    "totalPence": 412000,
+                    "transportPence": 18000,
+                    "version": 3,
+                    "waiverRatePct": 12
+                  },
+                  "latestChange": "v2 → v3: damageWaiver false → true"
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "applyRoutineUpdate",
+            "input": {
+              "changes": {
+                "invoiceAddress": "Halden Build Ltd, Accounts Payable, 4 Canal Wharf, Leeds LS11 5PY",
+                "poNumber": "HAL-PO-88213"
+              },
+              "evidenceIds": [
+                "<id>"
+              ],
+              "expectedVersion": 3,
+              "hireRef": "NH-5520"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "applyRoutineUpdate",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "fields": [
+                    "poNumber",
+                    "invoiceAddress"
+                  ],
+                  "tier": "auto",
+                  "version": 4
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "t": "Applied routine update (poNumber, invoiceAddress) to NH-5520 automatically (tier: auto, logged); hire now v4."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "t": "<user author=\"gary\" event_id=\"<id>\" evidence_id=\"<id>\" hire=\"NH-5520\" kind=\"note.created\" source=\"staff\" tag=\"note\">@assistant 10% off NH-5520, final – see my call with Sam this morning. He’s committed to two more hires this quarter.</user>"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "getHire",
+            "input": {
+              "hireRef": "NH-5520"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "getHire",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "hire": {
+                    "damageWaiver": true,
+                    "deliveryDate": "2026-11-02",
+                    "deliverySlot": "AM",
+                    "discountPct": 0,
+                    "durationDays": 14,
+                    "invoiceAddress": "Halden Build Ltd, Accounts Payable, 4 Canal Wharf, Leeds LS11 5PY",
+                    "lines": [
+                      {
+                        "description": "19m articulated boom lift",
+                        "fleetNo": "AB19-07",
+                        "kind": "boom",
+                        "lineNo": 1,
+                        "model": "JLG 600AJ",
+                        "quantity": 1,
+                        "spec": "Diesel 4x4 · 230kg platform",
+                        "status": "booked",
+                        "weeklyRatePence": 118000
+                      },
+                      {
+                        "description": "14m telehandler",
+                        "fleetNo": "TH14-22",
+                        "kind": "telehandler",
+                        "lineNo": 2,
+                        "model": "Manitou MT 1440",
+                        "quantity": 1,
+                        "spec": "4t lift capacity",
+                        "status": "booked",
+                        "weeklyRatePence": 79000
+                      }
+                    ],
+                    "poNumber": "HAL-PO-88213",
+                    "ref": "NH-5520",
+                    "site": "Riverside Yard",
+                    "siteContact": {
+                      "email": "sam.fletcher@haldenbuild.co.uk",
+                      "name": "Sam Fletcher"
+                    },
+                    "status": "confirmed",
+                    "threads": [
+                      {
+                        "contactEmail": "sam.fletcher@haldenbuild.co.uk",
+                        "label": "T1",
+                        "subject": "NH-5520 Riverside Yard – boom + telehandler"
+                      },
+                      {
+                        "contactEmail": "accounts@haldenbuild.co.uk",
+                        "label": "T2",
+                        "subject": "NH-5520 PO and invoicing"
+                      }
+                    ],
+                    "totalPence": 412000,
+                    "transportPence": 18000,
+                    "version": 4,
+                    "waiverRatePct": 12
+                  },
+                  "latestChange": "v3 → v4: invoiceAddress ∅ → Halden Build Ltd, Accounts Payable, 4 Canal Wharf, Leeds LS11 5PY; poNumber ∅ → HAL-PO-88213"
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "searchEvidence",
+            "input": {
+              "hireRef": "NH-5520",
+              "query": "call Sam more hires this quarter discount",
+              "sourceTypes": [
+                "transcript",
+                "email"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "searchEvidence",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "hits": [
+                    {
+                      "content": "Call: Gary Dunn ↔ Sam Fletcher (NH-5520 pricing)\nGary: Morning Sam, I saw your email about the price on the Riverside job.\nSam: Yeah, we’ve got three more sites coming this year and I’d rather keep it all with you.\nGary: What’s firm?\nSam: Two of them are definite this quarter – Hunslet Mill in November and the Elland Road car park in December. Both need a boom and a telehandler.\nGary: If you put both of those through us I can do 10% off NH-5520. That’s final from me.\nSam: Deal. Send it over in writing and I’ll get the PO sorted.",
+                      "id": "<id>",
+                      "score": 0.05204623714089394,
+                      "sourceId": "<id>",
+                      "sourceType": "transcript"
+                    },
+                    {
+                      "content": "NH-5520 Riverside Yard – boom + telehandler\nHi Sam,\n\nConfirming NH-5520: AB19-07 19m articulated boom lift and TH14-22 14m telehandler, delivered to Riverside Yard on Monday 2 November (AM), two weeks, £4,120.00 including transport, plus damage waiver and VAT.\n\nPlease sign and return the damage waiver before delivery.\n\nThanks,\nGary Dunn\nNorthgate Plant & Access Hire",
+                      "id": "<id>",
+                      "score": 0.031826965138316156,
+                      "sourceId": "<id>",
+                      "sourceType": "email"
+                    },
+                    {
+                      "content": "Re: NH-5520 Riverside Yard – boom + telehandler\nHi Gary,\n\nCan you knock something off NH-5520? We've got three more sites this year and I'd like to keep it all with Northgate.\n\nCheers,\nSam",
+                      "id": "<id>",
+                      "score": 0.02576800938695669,
+                      "sourceId": "<id>",
+                      "sourceType": "email"
+                    },
+                    {
+                      "content": "NH-5520 PO and invoicing\nHello,\n\nOur PO number for NH-5520 is HAL-PO-88213.\n\nInvoice address:\nHalden Build Ltd, Accounts Payable\n4 Canal Wharf, Leeds LS11 5PY\n\nThanks,\nLeanne Price",
+                      "id": "<id>",
+                      "score": 0.006666667014360428,
+                      "sourceId": "<id>",
+                      "sourceType": "email"
+                    }
+                  ]
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "getDraftChain",
+            "input": {
+              "hireRef": "NH-5520"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "getDraftChain",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "drafts": [],
+                  "hireVersion": 4
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "proposeDraft",
+            "input": {
+              "actions": [
+                {
+                  "discountPct": 10,
+                  "type": "applyPricing"
+                }
+              ],
+              "basedOnVersion": 4,
+              "evidenceIds": [
+                "<id>",
+                "<id>"
+              ],
+              "hireRef": "NH-5520",
+              "intent": "discount",
+              "kind": "bundle",
+              "reply": {
+                "body": "Hi Sam,\n\nThanks for the call. As agreed with Gary, we've applied 10% off NH-5520 in return for the two further hires this quarter.\n\nKit: AB19-07 19m articulated boom lift and TH14-22 14m telehandler.\nDelivery: Monday 2 November (AM), 2 weeks.\nHire price: £3,726.00 incl. transport (was £4,120.00), plus damage waiver £425.52 and VAT.\n\nKind regards,\nNorthgate Plant & Access Hire",
+                "subject": "Re: NH-5520 Riverside Yard – boom + telehandler",
+                "threadLabel": "T1",
+                "to": [
+                  "sam.fletcher@haldenbuild.co.uk"
+                ]
+              },
+              "title": "Pricing + reply to Sam (10% off)"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "proposeDraft",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "draft": {
+                    "basedOnVersion": 4,
+                    "ref": "D-7",
+                    "status": "pending",
+                    "supersedesRef": null
+                  },
+                  "pricing": {
+                    "credits": [],
+                    "discountPct": 10,
+                    "discountPence": 39400,
+                    "hireChargesPence": 394000,
+                    "netPence": 354600,
+                    "subtotalPence": 372600,
+                    "totalPence": 498182,
+                    "transportPence": 18000,
+                    "vatPence": 83030,
+                    "waiverPence": 42552
+                  }
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "t": "Prepared D-7 (pricing + reply, based on v4) for approval."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "t": "<user by=\"jo\" event_id=\"<id>\" fields=\"deliveryDate,lines.2.description,lines.2.fleetNo,lines.2.model,lines.2.weeklyRatePence\" from_version=\"4\" hire=\"NH-5520\" kind=\"hire.updated\" source=\"staff\" tag=\"field_edit\" to_version=\"5\">v4 → v5: deliveryDate 2026-11-02 → 2026-11-04; lines.2.description 14m telehandler → 17m telehandler; lines.2.fleetNo TH14-22 → TH17-05; lines.2.model Manitou MT 1440 → Manitou MT 1840; lines.2.weeklyRatePence 79000 → 86000</user>"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "getHire",
+            "input": {
+              "hireRef": "NH-5520"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "getHire",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "hire": {
+                    "damageWaiver": true,
+                    "deliveryDate": "2026-11-04",
+                    "deliverySlot": "AM",
+                    "discountPct": 0,
+                    "durationDays": 14,
+                    "invoiceAddress": "Halden Build Ltd, Accounts Payable, 4 Canal Wharf, Leeds LS11 5PY",
+                    "lines": [
+                      {
+                        "description": "19m articulated boom lift",
+                        "fleetNo": "AB19-07",
+                        "kind": "boom",
+                        "lineNo": 1,
+                        "model": "JLG 600AJ",
+                        "quantity": 1,
+                        "spec": "Diesel 4x4 · 230kg platform",
+                        "status": "booked",
+                        "weeklyRatePence": 118000
+                      },
+                      {
+                        "description": "17m telehandler",
+                        "fleetNo": "TH17-05",
+                        "kind": "telehandler",
+                        "lineNo": 2,
+                        "model": "Manitou MT 1840",
+                        "quantity": 1,
+                        "spec": "4t lift capacity",
+                        "status": "booked",
+                        "weeklyRatePence": 86000
+                      }
+                    ],
+                    "poNumber": "HAL-PO-88213",
+                    "ref": "NH-5520",
+                    "site": "Riverside Yard",
+                    "siteContact": {
+                      "email": "sam.fletcher@haldenbuild.co.uk",
+                      "name": "Sam Fletcher"
+                    },
+                    "status": "confirmed",
+                    "threads": [
+                      {
+                        "contactEmail": "sam.fletcher@haldenbuild.co.uk",
+                        "label": "T1",
+                        "subject": "NH-5520 Riverside Yard – boom + telehandler"
+                      },
+                      {
+                        "contactEmail": "accounts@haldenbuild.co.uk",
+                        "label": "T2",
+                        "subject": "NH-5520 PO and invoicing"
+                      }
+                    ],
+                    "totalPence": 412000,
+                    "transportPence": 18000,
+                    "version": 5,
+                    "waiverRatePct": 12
+                  },
+                  "latestChange": "v4 → v5: deliveryDate 2026-11-02 → 2026-11-04; lines.2.description 14m telehandler → 17m telehandler; lines.2.fleetNo TH14-22 → TH17-05; lines.2.model Manitou MT 1440 → Manitou MT 1840; lines.2.weeklyRatePence 79000 → 86000"
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "getDraftChain",
+            "input": {
+              "hireRef": "NH-5520"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "getDraftChain",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "drafts": [
+                    {
+                      "basedOnVersion": 4,
+                      "evidenceIds": [
+                        "<id>",
+                        "<id>"
+                      ],
+                      "kind": "bundle",
+                      "payload": {
+                        "actions": [
+                          {
+                            "discountPct": 10,
+                            "type": "applyPricing"
+                          }
+                        ],
+                        "checks": {
+                          "ok": true,
+                          "unsupported": []
+                        },
+                        "intent": "discount",
+                        "pricing": {
+                          "credits": [],
+                          "discountPct": 10,
+                          "discountPence": 39400,
+                          "hireChargesPence": 394000,
+                          "netPence": 354600,
+                          "subtotalPence": 372600,
+                          "totalPence": 498182,
+                          "transportPence": 18000,
+                          "vatPence": 83030,
+                          "waiverPence": 42552
+                        },
+                        "reply": {
+                          "body": "Hi Sam,\n\nThanks for the call. As agreed with Gary, we've applied 10% off NH-5520 in return for the two further hires this quarter.\n\nKit: AB19-07 19m articulated boom lift and TH14-22 14m telehandler.\nDelivery: Monday 2 November (AM), 2 weeks.\nHire price: £3,726.00 incl. transport (was £4,120.00), plus damage waiver £425.52 and VAT.\n\nKind regards,\nNorthgate Plant & Access Hire",
+                          "subject": "Re: NH-5520 Riverside Yard – boom + telehandler",
+                          "threadLabel": "T1",
+                          "to": [
+                            "sam.fletcher@haldenbuild.co.uk"
+                          ]
+                        }
+                      },
+                      "ref": "D-7",
+                      "staleReason": "hire moved v4 → v5",
+                      "status": "stale",
+                      "supersedesRef": null,
+                      "title": "Pricing + reply to Sam (10% off)"
+                    }
+                  ],
+                  "hireVersion": 5
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "t": "Noted staff edit on NH-5520. D-7 now stale."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "t": "<approval approval_id=\"<id>\" based_on=\"4\" decided_by=\"gary\" decision=\"approved\" draft=\"D-7\" event_id=\"<id>\" hire=\"NH-5520\" hire_version=\"5\" kind=\"approval.decided\" source=\"staff\">D-7 approved by gary; hire is now v5 (draft based on v4).</approval>"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "getHire",
+            "input": {
+              "hireRef": "NH-5520"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "getHire",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "hire": {
+                    "damageWaiver": true,
+                    "deliveryDate": "2026-11-04",
+                    "deliverySlot": "AM",
+                    "discountPct": 0,
+                    "durationDays": 14,
+                    "invoiceAddress": "Halden Build Ltd, Accounts Payable, 4 Canal Wharf, Leeds LS11 5PY",
+                    "lines": [
+                      {
+                        "description": "19m articulated boom lift",
+                        "fleetNo": "AB19-07",
+                        "kind": "boom",
+                        "lineNo": 1,
+                        "model": "JLG 600AJ",
+                        "quantity": 1,
+                        "spec": "Diesel 4x4 · 230kg platform",
+                        "status": "booked",
+                        "weeklyRatePence": 118000
+                      },
+                      {
+                        "description": "17m telehandler",
+                        "fleetNo": "TH17-05",
+                        "kind": "telehandler",
+                        "lineNo": 2,
+                        "model": "Manitou MT 1840",
+                        "quantity": 1,
+                        "spec": "4t lift capacity",
+                        "status": "booked",
+                        "weeklyRatePence": 86000
+                      }
+                    ],
+                    "poNumber": "HAL-PO-88213",
+                    "ref": "NH-5520",
+                    "site": "Riverside Yard",
+                    "siteContact": {
+                      "email": "sam.fletcher@haldenbuild.co.uk",
+                      "name": "Sam Fletcher"
+                    },
+                    "status": "confirmed",
+                    "threads": [
+                      {
+                        "contactEmail": "sam.fletcher@haldenbuild.co.uk",
+                        "label": "T1",
+                        "subject": "NH-5520 Riverside Yard – boom + telehandler"
+                      },
+                      {
+                        "contactEmail": "accounts@haldenbuild.co.uk",
+                        "label": "T2",
+                        "subject": "NH-5520 PO and invoicing"
+                      }
+                    ],
+                    "totalPence": 412000,
+                    "transportPence": 18000,
+                    "version": 5,
+                    "waiverRatePct": 12
+                  },
+                  "latestChange": "v4 → v5: deliveryDate 2026-11-02 → 2026-11-04; lines.2.description 14m telehandler → 17m telehandler; lines.2.fleetNo TH14-22 → TH17-05; lines.2.model Manitou MT 1440 → Manitou MT 1840; lines.2.weeklyRatePence 79000 → 86000"
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "getDraftChain",
+            "input": {
+              "hireRef": "NH-5520"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "getDraftChain",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "drafts": [
+                    {
+                      "basedOnVersion": 4,
+                      "evidenceIds": [
+                        "<id>",
+                        "<id>"
+                      ],
+                      "kind": "bundle",
+                      "payload": {
+                        "actions": [
+                          {
+                            "discountPct": 10,
+                            "type": "applyPricing"
+                          }
+                        ],
+                        "checks": {
+                          "ok": true,
+                          "unsupported": []
+                        },
+                        "intent": "discount",
+                        "pricing": {
+                          "credits": [],
+                          "discountPct": 10,
+                          "discountPence": 39400,
+                          "hireChargesPence": 394000,
+                          "netPence": 354600,
+                          "subtotalPence": 372600,
+                          "totalPence": 498182,
+                          "transportPence": 18000,
+                          "vatPence": 83030,
+                          "waiverPence": 42552
+                        },
+                        "reply": {
+                          "body": "Hi Sam,\n\nThanks for the call. As agreed with Gary, we've applied 10% off NH-5520 in return for the two further hires this quarter.\n\nKit: AB19-07 19m articulated boom lift and TH14-22 14m telehandler.\nDelivery: Monday 2 November (AM), 2 weeks.\nHire price: £3,726.00 incl. transport (was £4,120.00), plus damage waiver £425.52 and VAT.\n\nKind regards,\nNorthgate Plant & Access Hire",
+                          "subject": "Re: NH-5520 Riverside Yard – boom + telehandler",
+                          "threadLabel": "T1",
+                          "to": [
+                            "sam.fletcher@haldenbuild.co.uk"
+                          ]
+                        }
+                      },
+                      "ref": "D-7",
+                      "staleReason": "hire moved v4 → v5",
+                      "status": "stale",
+                      "supersedesRef": null,
+                      "title": "Pricing + reply to Sam (10% off)"
+                    }
+                  ],
+                  "hireVersion": 5
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "proposeDraft",
+            "input": {
+              "actions": [
+                {
+                  "discountPct": 10,
+                  "type": "applyPricing"
+                }
+              ],
+              "basedOnVersion": 5,
+              "evidenceIds": [
+                "<id>",
+                "<id>"
+              ],
+              "hireRef": "NH-5520",
+              "intent": "discount",
+              "kind": "bundle",
+              "reply": {
+                "body": "Hi Sam,\n\nThanks for the call. Note the updated delivery and kit below. As agreed with Gary, we've applied 10% off NH-5520 in return for the two further hires this quarter.\n\nKit: AB19-07 19m articulated boom lift and TH17-05 17m telehandler.\nDelivery: Wednesday 4 November (AM), 2 weeks.\nHire price: £3,852.00 incl. transport (was £4,260.00), plus damage waiver £440.64 and VAT.\n\nKind regards,\nNorthgate Plant & Access Hire",
+                "subject": "Re: NH-5520 Riverside Yard – boom + telehandler",
+                "threadLabel": "T1",
+                "to": [
+                  "sam.fletcher@haldenbuild.co.uk"
+                ]
+              },
+              "supersedes": "D-7",
+              "title": "Pricing + reply to Sam (10% off), revised for v5"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "proposeDraft",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "draft": {
+                    "basedOnVersion": 5,
+                    "ref": "D-8",
+                    "status": "pending",
+                    "supersedesRef": "D-7"
+                  },
+                  "pricing": {
+                    "credits": [],
+                    "discountPct": 10,
+                    "discountPence": 40800,
+                    "hireChargesPence": 408000,
+                    "netPence": 367200,
+                    "subtotalPence": 385200,
+                    "totalPence": 515117,
+                    "transportPence": 18000,
+                    "vatPence": 85853,
+                    "waiverPence": 44064
+                  }
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "t": "D-7 was approved but is stale (based on v4); regenerated as D-8 against v5. Needs approval again."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "t": "<approval approval_id=\"<id>\" based_on=\"5\" decided_by=\"gary\" decision=\"approved\" draft=\"D-8\" event_id=\"<id>\" hire=\"NH-5520\" hire_version=\"5\" kind=\"approval.decided\" source=\"staff\">D-8 approved by gary; hire is now v5 (draft based on v5).</approval>"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "getHire",
+            "input": {
+              "hireRef": "NH-5520"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "getHire",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "hire": {
+                    "damageWaiver": true,
+                    "deliveryDate": "2026-11-04",
+                    "deliverySlot": "AM",
+                    "discountPct": 0,
+                    "durationDays": 14,
+                    "invoiceAddress": "Halden Build Ltd, Accounts Payable, 4 Canal Wharf, Leeds LS11 5PY",
+                    "lines": [
+                      {
+                        "description": "19m articulated boom lift",
+                        "fleetNo": "AB19-07",
+                        "kind": "boom",
+                        "lineNo": 1,
+                        "model": "JLG 600AJ",
+                        "quantity": 1,
+                        "spec": "Diesel 4x4 · 230kg platform",
+                        "status": "booked",
+                        "weeklyRatePence": 118000
+                      },
+                      {
+                        "description": "17m telehandler",
+                        "fleetNo": "TH17-05",
+                        "kind": "telehandler",
+                        "lineNo": 2,
+                        "model": "Manitou MT 1840",
+                        "quantity": 1,
+                        "spec": "4t lift capacity",
+                        "status": "booked",
+                        "weeklyRatePence": 86000
+                      }
+                    ],
+                    "poNumber": "HAL-PO-88213",
+                    "ref": "NH-5520",
+                    "site": "Riverside Yard",
+                    "siteContact": {
+                      "email": "sam.fletcher@haldenbuild.co.uk",
+                      "name": "Sam Fletcher"
+                    },
+                    "status": "confirmed",
+                    "threads": [
+                      {
+                        "contactEmail": "sam.fletcher@haldenbuild.co.uk",
+                        "label": "T1",
+                        "subject": "NH-5520 Riverside Yard – boom + telehandler"
+                      },
+                      {
+                        "contactEmail": "accounts@haldenbuild.co.uk",
+                        "label": "T2",
+                        "subject": "NH-5520 PO and invoicing"
+                      }
+                    ],
+                    "totalPence": 412000,
+                    "transportPence": 18000,
+                    "version": 5,
+                    "waiverRatePct": 12
+                  },
+                  "latestChange": "v4 → v5: deliveryDate 2026-11-02 → 2026-11-04; lines.2.description 14m telehandler → 17m telehandler; lines.2.fleetNo TH14-22 → TH17-05; lines.2.model Manitou MT 1440 → Manitou MT 1840; lines.2.weeklyRatePence 79000 → 86000"
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "getDraftChain",
+            "input": {
+              "hireRef": "NH-5520"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "getDraftChain",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "drafts": [
+                    {
+                      "basedOnVersion": 4,
+                      "evidenceIds": [
+                        "<id>",
+                        "<id>"
+                      ],
+                      "kind": "bundle",
+                      "payload": {
+                        "actions": [
+                          {
+                            "discountPct": 10,
+                            "type": "applyPricing"
+                          }
+                        ],
+                        "checks": {
+                          "ok": true,
+                          "unsupported": []
+                        },
+                        "intent": "discount",
+                        "pricing": {
+                          "credits": [],
+                          "discountPct": 10,
+                          "discountPence": 39400,
+                          "hireChargesPence": 394000,
+                          "netPence": 354600,
+                          "subtotalPence": 372600,
+                          "totalPence": 498182,
+                          "transportPence": 18000,
+                          "vatPence": 83030,
+                          "waiverPence": 42552
+                        },
+                        "reply": {
+                          "body": "Hi Sam,\n\nThanks for the call. As agreed with Gary, we've applied 10% off NH-5520 in return for the two further hires this quarter.\n\nKit: AB19-07 19m articulated boom lift and TH14-22 14m telehandler.\nDelivery: Monday 2 November (AM), 2 weeks.\nHire price: £3,726.00 incl. transport (was £4,120.00), plus damage waiver £425.52 and VAT.\n\nKind regards,\nNorthgate Plant & Access Hire",
+                          "subject": "Re: NH-5520 Riverside Yard – boom + telehandler",
+                          "threadLabel": "T1",
+                          "to": [
+                            "sam.fletcher@haldenbuild.co.uk"
+                          ]
+                        }
+                      },
+                      "ref": "D-7",
+                      "staleReason": "hire moved v4 → v5",
+                      "status": "superseded",
+                      "supersedesRef": null,
+                      "title": "Pricing + reply to Sam (10% off)"
+                    },
+                    {
+                      "basedOnVersion": 5,
+                      "evidenceIds": [
+                        "<id>",
+                        "<id>"
+                      ],
+                      "kind": "bundle",
+                      "payload": {
+                        "actions": [
+                          {
+                            "discountPct": 10,
+                            "type": "applyPricing"
+                          }
+                        ],
+                        "checks": {
+                          "ok": true,
+                          "unsupported": []
+                        },
+                        "intent": "discount",
+                        "pricing": {
+                          "credits": [],
+                          "discountPct": 10,
+                          "discountPence": 40800,
+                          "hireChargesPence": 408000,
+                          "netPence": 367200,
+                          "subtotalPence": 385200,
+                          "totalPence": 515117,
+                          "transportPence": 18000,
+                          "vatPence": 85853,
+                          "waiverPence": 44064
+                        },
+                        "reply": {
+                          "body": "Hi Sam,\n\nThanks for the call. Note the updated delivery and kit below. As agreed with Gary, we've applied 10% off NH-5520 in return for the two further hires this quarter.\n\nKit: AB19-07 19m articulated boom lift and TH17-05 17m telehandler.\nDelivery: Wednesday 4 November (AM), 2 weeks.\nHire price: £3,852.00 incl. transport (was £4,260.00), plus damage waiver £440.64 and VAT.\n\nKind regards,\nNorthgate Plant & Access Hire",
+                          "subject": "Re: NH-5520 Riverside Yard – boom + telehandler",
+                          "threadLabel": "T1",
+                          "to": [
+                            "sam.fletcher@haldenbuild.co.uk"
+                          ]
+                        }
+                      },
+                      "ref": "D-8",
+                      "staleReason": null,
+                      "status": "approved",
+                      "supersedesRef": "D-7",
+                      "title": "Pricing + reply to Sam (10% off), revised for v5"
+                    }
+                  ],
+                  "hireVersion": 5
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "applyPricing",
+            "input": {
+              "draftRef": "D-8",
+              "expectedVersion": 5,
+              "hireRef": "NH-5520"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "applyPricing",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "discountPct": 10,
+                  "subtotalPence": 385200,
+                  "version": 6
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "queueEmail",
+            "input": {
+              "draftRef": "D-8",
+              "hireRef": "NH-5520"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "queueEmail",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "outboxId": "<id>",
+                  "to": [
+                    "sam.fletcher@haldenbuild.co.uk"
+                  ]
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "t": "Applied D-8 and sent exactly one email (outbox <id>)."
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "t": "<schedule event_id=\"<id>\" hire=\"NH-5520\" kind=\"schedule.fired\" trigger=\"manual\">Daily pre-delivery sweep: check waiver, delivery readiness and anything waiting on us.</schedule>"
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "getHire",
+            "input": {
+              "hireRef": "NH-5520"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "getHire",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "hire": {
+                    "damageWaiver": true,
+                    "deliveryDate": "2026-11-04",
+                    "deliverySlot": "AM",
+                    "discountPct": 10,
+                    "durationDays": 14,
+                    "invoiceAddress": "Halden Build Ltd, Accounts Payable, 4 Canal Wharf, Leeds LS11 5PY",
+                    "lines": [
+                      {
+                        "description": "19m articulated boom lift",
+                        "fleetNo": "AB19-07",
+                        "kind": "boom",
+                        "lineNo": 1,
+                        "model": "JLG 600AJ",
+                        "quantity": 1,
+                        "spec": "Diesel 4x4 · 230kg platform",
+                        "status": "booked",
+                        "weeklyRatePence": 118000
+                      },
+                      {
+                        "description": "17m telehandler",
+                        "fleetNo": "TH17-05",
+                        "kind": "telehandler",
+                        "lineNo": 2,
+                        "model": "Manitou MT 1840",
+                        "quantity": 1,
+                        "spec": "4t lift capacity",
+                        "status": "booked",
+                        "weeklyRatePence": 86000
+                      }
+                    ],
+                    "poNumber": "HAL-PO-88213",
+                    "ref": "NH-5520",
+                    "site": "Riverside Yard",
+                    "siteContact": {
+                      "email": "sam.fletcher@haldenbuild.co.uk",
+                      "name": "Sam Fletcher"
+                    },
+                    "status": "confirmed",
+                    "threads": [
+                      {
+                        "contactEmail": "sam.fletcher@haldenbuild.co.uk",
+                        "label": "T1",
+                        "subject": "NH-5520 Riverside Yard – boom + telehandler"
+                      },
+                      {
+                        "contactEmail": "accounts@haldenbuild.co.uk",
+                        "label": "T2",
+                        "subject": "NH-5520 PO and invoicing"
+                      }
+                    ],
+                    "totalPence": 385200,
+                    "transportPence": 18000,
+                    "version": 6,
+                    "waiverRatePct": 12
+                  },
+                  "latestChange": "v5 → v6: discountPct 0 → 10; totalPence 412000 → 385200"
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "call": "getWaiverStatus",
+            "input": {
+              "hireRef": "NH-5520"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "content": [
+          {
+            "result": "getWaiverStatus",
+            "output": {
+              "type": "json",
+              "value": {
+                "result": {
+                  "daysToDelivery": 13,
+                  "documentEvidenceId": "<id>",
+                  "documentId": "<id>",
+                  "signed": false,
+                  "waiverRequired": true
+                },
+                "status": "OK"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "tools": [
+      "applyPricing",
+      "applyRoutineUpdate",
+      "cancelLine",
+      "getDraftChain",
+      "getHire",
+      "getLines",
+      "getWaiverStatus",
+      "issueCreditNote",
+      "proposeDraft",
+      "queueEmail",
+      "searchEvidence",
+      "updateWorkingMemory"
+    ]
+  },
+  "parts": [
+    {
+      "type": "stream-start",
+      "warnings": []
+    },
+    {
+      "type": "response-metadata",
+      "id": "scripted-32",
+      "modelId": "scripted-desk",
+      "timestamp": "1970-01-01T00:00:00.000Z"
+    },
+    {
+      "type": "tool-call",
+      "toolCallId": "in0-991619a6:chain",
+      "toolName": "getDraftChain",
+      "input": "{\"hireRef\":\"NH-5520\"}"
+    },
+    {
+      "type": "finish",
+      "finishReason": "tool-calls",
+      "usage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "totalTokens": 0
+      }
+    }
+  ]
+}

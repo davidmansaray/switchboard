@@ -1,0 +1,55 @@
+{
+  "name": "switchboard",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.30.3",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "pnpm -r --workspace-concurrency=1 build",
+    "lint": "eslint .",
+    "typecheck": "pnpm -r typecheck",
+    "test": "vitest run --project unit --project integration",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "db:create": "node scripts/db-create.mjs",
+    "db:migrate": "pnpm --filter @switchboard/db migrate",
+    "db:generate": "pnpm --filter @switchboard/db generate",
+    "db:seed": "pnpm --filter @switchboard/db seed",
+    "db:reset": "pnpm --filter @switchboard/db reset",
+    "smoke:harness": "pnpm --filter @switchboard/agent exec tsx scripts/smoke-harness.ts",
+    "smoke:crash": "pnpm --filter @switchboard/agent exec tsx scripts/smoke-crash.ts",
+    "dev:built": "node scripts/dev.mjs --built",
+    "scenario:reset": "pnpm --filter @switchboard/agent exec tsx scripts/scenario.ts reset",
+    "scenario:beat": "pnpm --filter @switchboard/agent exec tsx scripts/scenario.ts beat",
+    "scenario:state": "pnpm --filter @switchboard/agent exec tsx scripts/scenario.ts state",
+    "test:app": "SIGNAL_BACKEND=app vitest run --project unit --project integration",
+    "eval": "vitest run --project evals",
+    "e2e": "node scripts/e2e.mjs",
+    "eval:app": "SIGNAL_BACKEND=app vitest run --project evals",
+    "eval:replay": "EVAL_LLM_MODE=replay vitest run --project evals",
+    "scenario:record": "pnpm --filter @switchboard/agent exec tsx scripts/record.ts",
+    "setup:local": "node scripts/setup-local.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@next/eslint-plugin-next": "16.4.2",
+    "@playwright/test": "1.64.1",
+    "@types/node": "22.20.5",
+    "eslint": "9.39.5",
+    "globals": "17.13.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.0",
+    "vitest": "5.0.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "@swc/core",
+      "unrs-resolver"
+    ]
+  }
+}

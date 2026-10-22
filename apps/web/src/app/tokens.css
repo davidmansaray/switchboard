@@ -1,0 +1,347 @@
+/*
+ * Switchboard · Yard Board design tokens
+ * Northgate Plant & Access Hire ops app. Source of truth: directions/1-yard-board/index.html
+ *
+ * Use in apps/web (Next.js + Tailwind v4), in app/globals.css:
+ *   @import "tailwindcss";
+ *   @import "./tokens.css";      (copy of this file)
+ *
+ * Layers:
+ *   1. Raw tokens on :root, with dark overrides for prefers-color-scheme and [data-theme="dark"].
+ *      Theme switches at the variable level, so components never need dark: variants.
+ *   2. State maps: data-* attributes set per-component variables (--head-bg, --tint, ...).
+ *      A new run/draft/delivery state is a data value plus one line here, not new CSS.
+ *   3. @theme inline: exposes the tokens as Tailwind utilities (bg-rack, text-ink,
+ *      bg-t-awaiting, font-mono, rounded-t-head, shadow-lift, ease-slot; durations via duration-(--dur-travel)).
+ *
+ * Fonts (load with next/font/google and bind to these variables):
+ *   Archivo variable, axes wdth 100..125 + wght 400..700  -> --ff-ui
+ *     display = font-stretch: 112.5% (SemiExpanded) at weight 650
+ *   IBM Plex Mono 500                                     -> --ff-mono (tabular numerals)
+ *
+ * Motion signature, "the slot drop": lift (--dur-lift, --lift-y) -> travel to the new column
+ *   (FLIP, --dur-travel, --ez-slot) -> settle (--dur-settle, --settle-y). Queued signal edges
+ *   rise from the card pocket in --dur-edge. With reduced motion: crossfade in --dur-fade only.
+ *
+ * Naming: raw tokens match the direction page, except eight renamed so they don't collide with
+ * Tailwind's theme namespaces: --font-ui/--font-mono -> --ff-ui/--ff-mono, --shadow-* -> --sh-*,
+ * --ease-slot/--ease-out -> --ez-slot/--ez-out. Utilities keep the natural names
+ * (font-ui, font-mono, shadow-lift, ease-slot).
+ */
+/* ---------------------------------------------------------------- 1. raw tokens */
+:root {
+  color-scheme: light;
+  /* surfaces + ink */
+  --rack: #EEF1F3;            /* galvanised: page background */
+  --rack-2: #E4E8EB;          /* sunk rack strip (column floor) */
+  --card: #FFFFFF;
+  --card-2: #F7F8F9;          /* quiet inset inside a card */
+  --ink: #15181C;             /* tarmac: text + primary buttons */
+  --ink-2: #4A525C;
+  --ink-3: #5E6670;
+  --on-ink: #FFFFFF;
+  --rail: #C9D0D6;            /* rack rails, card borders */
+  --rail-2: #DCE1E5;          /* faint slot rails */
+  /* T-card heads (fill + text on fill) */
+  --t-running: #1B7F53;       /* green card (spec #1E8A5A, deepened 4% so white text passes AA) */
+  --on-running: #FFFFFF;
+  --t-queued: #F2C12E;        /* yellow card */
+  --on-queued: #15181C;
+  --t-awaiting: #E2507A;      /* pink card */
+  --on-awaiting: #15181C;
+  --t-idle: #FFFFFF;          /* white card, ink outline */
+  --on-idle: #15181C;
+  --t-idle-edge: #15181C;
+  --t-recovering: #15181C;    /* run lost: ink card, dashed */
+  --on-recovering: #FFFFFF;
+  --t-stale: #F08A24;         /* orange fold */
+  --on-stale: #15181C;
+  --t-applied: #2C6FB7;       /* blue card: applied / filed only */
+  --on-applied: #FFFFFF;
+  --t-superseded: #E4E8EB;
+  --on-superseded: #4A525C;
+  /* quiet tints for chips (always with ink text) */
+  --tint-running: #DDF0E7;
+  --tint-queued: #FCF0C6;
+  --tint-awaiting: #FBE0E8;
+  --tint-stale: #FDE6CF;
+  --tint-applied: #DCE8F5;
+  --tint-neutral: #F1F3F5;
+  /* text-safe accents (AA on card) */
+  --text-awaiting: #B8325A;
+  --text-stale: #9A520D;
+  --text-running: #17704A;
+  --text-applied: #245E9C;
+  --focus: #F2C12E;
+  /* inspector (Architecture Overlay) */
+  --inspect-bg: #15181C;
+  --inspect-bg-2: #20252B;
+  --inspect-fg: #F1F3F5;
+  --inspect-fg-2: #A9B1BA;
+  --inspect-line: #343B43;
+  --inspect-accent: #F2C12E;
+  --inspect-region: #15181C;
+  /* shadows */
+  --sh-card: 0 1px 0 rgba(0, 0, 0, .04);
+  --sh-lift: 0 8px 18px rgba(21, 24, 28, .14);
+  --lift-filter: drop-shadow(0 8px 9px rgba(21, 24, 28, .14));
+  --rest-filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .04));
+  --sh-drawer: -12px 0 24px rgba(21, 24, 28, .08);
+  --sh-sheet: 0 -8px 24px rgba(21, 24, 28, .12);
+  /* type */
+  --ff-ui: var(--font-archivo), 'Archivo', system-ui, sans-serif;
+  --ff-mono: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+  --stretch-display: 112.5%;  /* Archivo SemiExpanded */
+  --w-display: 650;
+  --fs-10: 10.5px;
+  --fs-11: 11.5px;
+  --fs-12: 12.5px;
+  --fs-13: 13.5px;
+  --fs-15: 15px;
+  --fs-18: 18px;
+  --fs-22: 22px;
+  --lh-tight: 1.25;
+  --lh-body: 1.45;
+  /* space */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  /* radius */
+  --r-head: 6px;
+  --r-body: 4px;
+  --r-ctl: 6px;
+  --r-sm: 3px;
+  /* layout */
+  --rail-w: 64px;
+  --topbar-h: 56px;
+  --subbar-h: 52px;
+  --drawer-w: 380px;
+  --side-w: 336px;
+  --spine-w: 56px;
+  --gutter: 16px;
+  /* motion: the slot drop */
+  --dur-lift: 120ms;
+  --dur-travel: 420ms;
+  --dur-settle: 90ms;
+  --dur-edge: 160ms;
+  --dur-fade: 150ms;
+  --dur-colour: 200ms;
+  --ez-slot: cubic-bezier(.2, .8, .2, 1);
+  --ez-out: cubic-bezier(.2, .7, .3, 1);
+  --lift-y: -6px;
+  --settle-y: 2px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --rack: #121518; --rack-2: #0D1013; --card: #1B1F24; --card-2: #20252B;
+    --ink: #F1F3F5; --ink-2: #A9B1BA; --ink-3: #97A0A9; --on-ink: #15181C;
+    --rail: #2E353D; --rail-2: #242A30;
+    --t-running: #19714A; --on-running: #FFFFFF;
+    --t-queued: #F0B811; --on-queued: #15181C;
+    --t-awaiting: #E2507A; --on-awaiting: #15181C;
+    --t-idle: #1B1F24; --on-idle: #F1F3F5; --t-idle-edge: #A9B1BA;
+    --t-recovering: #F1F3F5; --on-recovering: #15181C;
+    --t-stale: #E67B10; --on-stale: #15181C;
+    --t-applied: #26609E; --on-applied: #FFFFFF;
+    --t-superseded: #2A3037; --on-superseded: #A9B1BA;
+    --tint-running: #173226; --tint-queued: #3A3216; --tint-awaiting: #3D1D28; --tint-stale: #3B2614; --tint-applied: #182C42; --tint-neutral: #242A30;
+    --text-awaiting: #F48AA8; --text-stale: #F3A55A; --text-running: #5FD39C; --text-applied: #8DB8EA;
+    --focus: #F2C12E;
+    --inspect-bg: #0A0C0E; --inspect-bg-2: #15191D; --inspect-fg: #F1F3F5; --inspect-fg-2: #A9B1BA; --inspect-line: #2E353D; --inspect-region: #F2C12E;
+    --sh-card: 0 1px 0 rgba(0, 0, 0, .3);
+    --sh-lift: 0 8px 18px rgba(0, 0, 0, .45);
+    --lift-filter: drop-shadow(0 8px 9px rgba(0, 0, 0, .45));
+    --rest-filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .3));
+    --sh-drawer: -12px 0 24px rgba(0, 0, 0, .35);
+    --sh-sheet: 0 -8px 24px rgba(0, 0, 0, .4);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --rack: #121518; --rack-2: #0D1013; --card: #1B1F24; --card-2: #20252B;
+  --ink: #F1F3F5; --ink-2: #A9B1BA; --ink-3: #97A0A9; --on-ink: #15181C;
+  --rail: #2E353D; --rail-2: #242A30;
+  --t-running: #19714A; --on-running: #FFFFFF;
+  --t-queued: #F0B811; --on-queued: #15181C;
+  --t-awaiting: #E2507A; --on-awaiting: #15181C;
+  --t-idle: #1B1F24; --on-idle: #F1F3F5; --t-idle-edge: #A9B1BA;
+  --t-recovering: #F1F3F5; --on-recovering: #15181C;
+  --t-stale: #E67B10; --on-stale: #15181C;
+  --t-applied: #26609E; --on-applied: #FFFFFF;
+  --t-superseded: #2A3037; --on-superseded: #A9B1BA;
+  --tint-running: #173226; --tint-queued: #3A3216; --tint-awaiting: #3D1D28; --tint-stale: #3B2614; --tint-applied: #182C42; --tint-neutral: #242A30;
+  --text-awaiting: #F48AA8; --text-stale: #F3A55A; --text-running: #5FD39C; --text-applied: #8DB8EA;
+  --focus: #F2C12E;
+  --inspect-bg: #0A0C0E; --inspect-bg-2: #15191D; --inspect-fg: #F1F3F5; --inspect-fg-2: #A9B1BA; --inspect-line: #2E353D; --inspect-region: #F2C12E;
+  --sh-card: 0 1px 0 rgba(0, 0, 0, .3);
+  --sh-lift: 0 8px 18px rgba(0, 0, 0, .45);
+  --lift-filter: drop-shadow(0 8px 9px rgba(0, 0, 0, .45));
+  --rest-filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .3));
+  --sh-drawer: -12px 0 24px rgba(0, 0, 0, .35);
+  --sh-sheet: 0 -8px 24px rgba(0, 0, 0, .4);
+}
+
+/* ---------------------------------------------------------------- 2. state maps */
+/* desk status: idle | running | queued | awaiting_approval | recovering
+   draft status: pending | stale | superseded | approved | applied
+   signal delivery: delivered | queued | persisted | discarded
+   ledger status: recorded | skipped_duplicate | fenced
+   open loop: open | decided | closed       run state: running | completed | crashed | fenced
+   ====================================================================== */
+[data-status="running"]           { --head-bg: var(--t-running);    --head-fg: var(--on-running);    --tint: var(--tint-running);  --accent-text: var(--text-running); }
+[data-status="queued"]            { --head-bg: var(--t-queued);     --head-fg: var(--on-queued);     --tint: var(--tint-queued);   --accent-text: var(--ink); }
+[data-status="awaiting_approval"] { --head-bg: var(--t-awaiting);   --head-fg: var(--on-awaiting);   --tint: var(--tint-awaiting); --accent-text: var(--text-awaiting); }
+[data-status="idle"]              { --head-bg: var(--t-idle);       --head-fg: var(--on-idle);       --tint: var(--tint-neutral);  --accent-text: var(--ink-2); }
+[data-status="recovering"]        { --head-bg: var(--t-recovering); --head-fg: var(--on-recovering); --tint: var(--tint-neutral);  --accent-text: var(--ink); }
+
+[data-draft-status="pending"]    { --head-bg: var(--t-awaiting);   --head-fg: var(--on-awaiting);   --tint: var(--tint-awaiting); --accent-text: var(--text-awaiting); }
+[data-draft-status="stale"]      { --head-bg: var(--t-awaiting);   --head-fg: var(--on-awaiting);   --tint: var(--tint-stale);    --accent-text: var(--text-stale); }
+[data-draft-status="superseded"] { --head-bg: var(--t-superseded); --head-fg: var(--on-superseded); --tint: var(--tint-neutral);  --accent-text: var(--ink-3); }
+[data-draft-status="approved"]   { --head-bg: var(--t-running);    --head-fg: var(--on-running);    --tint: var(--tint-running);  --accent-text: var(--text-running); }
+[data-draft-status="applied"]    { --head-bg: var(--t-applied);    --head-fg: var(--on-applied);    --tint: var(--tint-applied);  --accent-text: var(--text-applied); }
+[data-draft-status="rejected"]   { --head-bg: var(--t-superseded); --head-fg: var(--on-superseded); --tint: var(--tint-neutral);  --accent-text: var(--ink-3); }
+
+[data-delivery="delivered"] { --sig-edge: var(--rail); }
+[data-delivery="queued"]    { --sig-edge: var(--t-queued); }
+[data-delivery="persisted"] { --sig-edge: var(--t-applied); }
+[data-delivery="discarded"] { --sig-edge: var(--rail-2); }
+[data-delivery="blocked"]   { --sig-edge: var(--t-stale); }
+[data-delivery="failed"]    { --sig-edge: var(--t-awaiting); }
+
+[data-ledger="recorded"]          { --chip-bg: var(--tint-running); --chip-fg: var(--ink); --chip-edge: var(--t-running); }
+[data-ledger="skipped_duplicate"] { --chip-bg: var(--tint-queued);  --chip-fg: var(--ink); --chip-edge: var(--t-queued); }
+[data-ledger="fenced"]            { --chip-bg: var(--tint-stale);   --chip-fg: var(--ink); --chip-edge: var(--t-stale); }
+[data-ledger="rejected_version"]  { --chip-bg: var(--tint-stale);   --chip-fg: var(--ink); --chip-edge: var(--t-stale); }
+[data-ledger="rejected"]          { --chip-bg: var(--tint-awaiting); --chip-fg: var(--ink); --chip-edge: var(--t-awaiting); }
+
+[data-loop="open"]    { --chip-bg: var(--tint-awaiting); --chip-edge: var(--t-awaiting); }
+[data-loop="decided"] { --chip-bg: var(--tint-queued);   --chip-edge: var(--t-queued); }
+[data-loop="closed"]  { --chip-bg: var(--tint-neutral);  --chip-edge: var(--rail); }
+
+[data-run="running"]   { --chip-bg: var(--tint-running); --chip-edge: var(--t-running); }
+[data-run="completed"] { --chip-bg: var(--tint-neutral); --chip-edge: var(--rail); }
+[data-run="crashed"]   { --chip-bg: var(--tint-stale);   --chip-edge: var(--t-stale); }
+[data-run="fenced"]    { --chip-bg: var(--tint-stale);   --chip-edge: var(--t-stale); }
+[data-run="failed"]    { --chip-bg: var(--tint-awaiting); --chip-edge: var(--t-awaiting); }
+
+/* ---------------------------------------------------------------- 3. Tailwind v4 */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme inline {
+  /* surfaces + ink */
+  --color-rack: var(--rack);
+  --color-rack-2: var(--rack-2);
+  --color-card: var(--card);
+  --color-card-2: var(--card-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-on-ink: var(--on-ink);
+  --color-rail: var(--rail);
+  --color-rail-2: var(--rail-2);
+  --color-focus: var(--focus);
+  /* T-card heads and the text that sits on them */
+  --color-t-running: var(--t-running);
+  --color-on-running: var(--on-running);
+  --color-t-queued: var(--t-queued);
+  --color-on-queued: var(--on-queued);
+  --color-t-awaiting: var(--t-awaiting);
+  --color-on-awaiting: var(--on-awaiting);
+  --color-t-idle: var(--t-idle);
+  --color-on-idle: var(--on-idle);
+  --color-t-idle-edge: var(--t-idle-edge);
+  --color-t-recovering: var(--t-recovering);
+  --color-on-recovering: var(--on-recovering);
+  --color-t-stale: var(--t-stale);
+  --color-on-stale: var(--on-stale);
+  --color-t-applied: var(--t-applied);
+  --color-on-applied: var(--on-applied);
+  --color-t-superseded: var(--t-superseded);
+  --color-on-superseded: var(--on-superseded);
+  /* quiet tints (always with ink text) */
+  --color-tint-running: var(--tint-running);
+  --color-tint-queued: var(--tint-queued);
+  --color-tint-awaiting: var(--tint-awaiting);
+  --color-tint-stale: var(--tint-stale);
+  --color-tint-applied: var(--tint-applied);
+  --color-tint-neutral: var(--tint-neutral);
+  /* text-safe accents (AA on card) */
+  --color-text-awaiting: var(--text-awaiting);
+  --color-text-stale: var(--text-stale);
+  --color-text-running: var(--text-running);
+  --color-text-applied: var(--text-applied);
+  /* Architecture Overlay inspector */
+  --color-inspect-bg: var(--inspect-bg);
+  --color-inspect-bg-2: var(--inspect-bg-2);
+  --color-inspect-fg: var(--inspect-fg);
+  --color-inspect-fg-2: var(--inspect-fg-2);
+  --color-inspect-line: var(--inspect-line);
+  --color-inspect-accent: var(--inspect-accent);
+  --color-inspect-region: var(--inspect-region);
+  /* per-component state variables set by the state maps */
+  --color-head-bg: var(--head-bg);
+  --color-head-fg: var(--head-fg);
+  --color-tint: var(--tint);
+  --color-accent-text: var(--accent-text);
+  --color-sig-edge: var(--sig-edge);
+  --color-chip-bg: var(--chip-bg);
+  --color-chip-fg: var(--chip-fg);
+  --color-chip-edge: var(--chip-edge);
+
+  /* type */
+  --font-ui: var(--ff-ui);
+  --font-mono: var(--ff-mono);
+  --font-sans: var(--ff-ui);
+  --text-10: var(--fs-10);
+  --text-11: var(--fs-11);
+  --text-12: var(--fs-12);
+  --text-13: var(--fs-13);
+  --text-15: var(--fs-15);
+  --text-18: var(--fs-18);
+  --text-22: var(--fs-22);
+  --leading-tight: var(--lh-tight);
+  --leading-body: var(--lh-body);
+  --font-weight-display: var(--w-display);
+
+  /* space: Tailwind multiplies --spacing; 4px base matches --s-1 */
+  --spacing: 4px;
+  --spacing-rail: var(--rail-w);
+  --spacing-topbar: var(--topbar-h);
+  --spacing-subbar: var(--subbar-h);
+  --spacing-drawer: var(--drawer-w);
+  --spacing-side: var(--side-w);
+  --spacing-spine: var(--spine-w);
+  --spacing-gutter: var(--gutter);
+
+  /* radius: T-card head is rounded on top only (rounded-t-head), body on the bottom (rounded-b-body) */
+  --radius-head: var(--r-head);
+  --radius-body: var(--r-body);
+  --radius-ctl: var(--r-ctl);
+  --radius-sm: var(--r-sm);
+
+  /* elevation: hairlines by default; only the card in motion is lifted */
+  --shadow-card: var(--sh-card);
+  --shadow-lift: var(--sh-lift);
+  --shadow-drawer: var(--sh-drawer);
+  --shadow-sheet: var(--sh-sheet);
+
+  /* motion */
+  --ease-slot: var(--ez-slot);
+  --ease-out: var(--ez-out);
+  --animate-edge-rise: edge-rise var(--dur-edge) var(--ez-out) both;
+  --animate-edge-sink: edge-sink var(--dur-edge) var(--ez-out) both;
+  --animate-slot-in: slot-in var(--dur-travel) var(--ez-slot) both;
+}
+
+@keyframes edge-rise { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes edge-sink { from { transform: translateY(0); } to { transform: translateY(105%); } }
+@keyframes slot-in { from { transform: translateY(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-lift: 0ms; --dur-travel: 0ms; --dur-settle: 0ms; --dur-edge: 0ms; --lift-y: 0px; --settle-y: 0px; }
+}
