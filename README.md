@@ -1,12 +1,14 @@
 # Switchboard
 
+Switchboard is a control room for people and agents managing hire bookings, built with Next.js, TypeScript and Mastra.
+
 A customer asks for a discount. Someone changes the booking. An approval arrives for the earlier version.
 
 Switchboard makes that overlap visible. It gives each hire a desk where customer emails, staff notes, booking changes and approvals stay connected. An agent can handle routine work; people decide on changes to money, dates and cancellations.
 
 [Try the demo](https://switchboard.davidmansaray.com)
 
-Northgate Plant & Access Hire and its contacts are fictional. The default model is scripted, replay recordings come from that model, and email stays in a simulated in-app outbox. The role picker is demo authentication.
+Northgate Plant & Access Hire is a sample business created for the demo. The default model is scripted, replay recordings come from that model, and email stays in a simulated in-app outbox. The role picker is demo authentication.
 
 ![The Control Room: hire desks, current work and the sign-off queue](docs/screens/control-room.webp)
 

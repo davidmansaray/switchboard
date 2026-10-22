@@ -2,7 +2,7 @@
 
 [Back to the product overview](../README.md)
 
-The Northgate story uses fictional data, a scripted model by default and a simulated in-app email outbox. The recordings exercise the workflow; they do not establish live-model quality.
+The Northgate story uses sample data, a scripted model by default and a simulated in-app email outbox. The recordings exercise the workflow; they do not establish live-model quality.
 
 ## The hero story (9 beats)
 
