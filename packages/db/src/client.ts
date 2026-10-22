@@ -37,7 +37,7 @@ export async function pingDb(): Promise<void> {
  * Run `fn` in a transaction with `app.actor` set, so version triggers record
  * who changed the hire (staff id, `agent:desk`, `customer:<email>`).
  */
-export async function withActor<T>(db: Db, actor: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
+export async function withActor<T>(db: DbOrTx, actor: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
   return db.transaction(async (tx) => {
     await tx.execute(sqlTag`select set_config('app.actor', ${actor}, true)`);
     return fn(tx);

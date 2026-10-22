@@ -86,6 +86,8 @@ See [verification results](docs/verification.md) for checks performed on this ap
 
 `pnpm e2e` starts the production builds on their own ports (web 3243, agent 4243) and database (`switchboard_showcase_e2e`) for each backend, under the same supervisor, and drives the installed Google Chrome (`channel: 'chrome'`; no Playwright browser download).
 
+Simulator reset clears and reseeds its data in one database transaction, so concurrent refreshes cannot observe an empty scenario and a failed seed preserves the previous state. A database regression test injects a seed failure to verify rollback.
+
 The E2E runner checks that its ports are free before resetting the disposable database, verifies the requested backend at startup, and waits for the previous stack to stop before starting the next. It saves per-backend stack logs and browser traces under `test-results/`; GitHub retains failure artifacts for seven days.
 
 ## Further reading

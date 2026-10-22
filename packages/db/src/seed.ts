@@ -1,6 +1,6 @@
 import { APPROVAL_TIERS, priceHire } from '@switchboard/core';
 import { eq, sql } from 'drizzle-orm';
-import { withActor, type Db } from './client';
+import { withActor, type DbOrTx } from './client';
 import { indexEvidence } from './evidence';
 import {
   CUSTOMERS,
@@ -22,7 +22,7 @@ export const customerResourceId = (customerId: string) => `customer:${customerId
 export type SeedResult = { heroHireId: string; hireIds: Record<string, string> };
 
 /** Seed a freshly migrated database. Not idempotent: run through `reset`. */
-export async function seed(db: Db): Promise<SeedResult> {
+export async function seed(db: DbOrTx): Promise<SeedResult> {
   return withActor(db, 'system:seed', async (tx) => {
     await tx.insert(s.staff).values(STAFF.map((x) => ({ ...x })));
     await tx.insert(s.fleet).values(FLEET.map((f) => ({ ...f }))).onConflictDoNothing();
