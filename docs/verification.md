@@ -22,7 +22,7 @@ The first strict replay check found 23 missing responses because the original fi
 
 ## Simulator reset regression
 
-GitHub browser traces exposed a refresh overlapping reset: the old reset committed its table truncation before reseeding, so the page could render without a current staff member. Reset now truncates and seeds in one transaction. An injected seed failure reproduced empty staff data on the previous implementation; the same regression passes with rollback preserving the existing staff and hires. Lint and workspace type checks also pass locally.
+GitHub browser traces exposed a refresh overlapping reset: the old reset committed its table truncation before reseeding, so the page could render without a current staff member. Reset now truncates and seeds in one transaction. An injected seed failure reproduced empty staff data on the previous implementation; the same regression passes with rollback preserving the existing staff and hires. The seed explicitly preserves its three historical revisions inside the outer reset transaction. All eight focused database/scenario reset and recovery tests pass locally on both backends, as do lint and workspace type checks.
 
 The browser runner verifies backend identity, fully stops each stack before starting the next, and retains separate logs and traces for diagnosing failures.
 

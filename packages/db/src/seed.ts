@@ -98,8 +98,16 @@ export async function seed(db: DbOrTx): Promise<SeedResult> {
   }).then(async ({ hireIds, contactIds }) => {
     const heroHireId = hireIds[HERO_REF]!;
     // Hero history: v1 enquiry → v2 confirmed (AM slot) → v3 damage waiver added. Beat 2's PO makes v4.
-    await withActor(db, 'gary', (tx) => tx.update(s.hires).set({ status: 'confirmed', deliverySlot: 'AM' }).where(eq(s.hires.id, heroHireId)));
-    await withActor(db, 'gary', (tx) => tx.update(s.hires).set({ damageWaiver: true }).where(eq(s.hires.id, heroHireId)));
+    // These are distinct historical edits, even when reset seeds inside one outer transaction.
+    // Clear only the seed row's once-per-transaction guard before each historical revision.
+    await withActor(db, 'gary', async (tx) => {
+      await tx.update(s.hires).set({ versionTxid: null }).where(eq(s.hires.id, heroHireId));
+      await tx.update(s.hires).set({ status: 'confirmed', deliverySlot: 'AM' }).where(eq(s.hires.id, heroHireId));
+    });
+    await withActor(db, 'gary', async (tx) => {
+      await tx.update(s.hires).set({ versionTxid: null }).where(eq(s.hires.id, heroHireId));
+      await tx.update(s.hires).set({ damageWaiver: true }).where(eq(s.hires.id, heroHireId));
+    });
 
     await withActor(db, 'system:seed', async (tx) => {
       const threadIds: Record<string, string> = {};
